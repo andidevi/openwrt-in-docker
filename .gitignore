@@ -1,0 +1,7 @@
+# Tar-Dateien und alle komprimierten Tarball-Varianten ausschließen
+*.tar
+*.tar.*
+*.tgz
+*.tbz2
+*.txz
+*.tlz
