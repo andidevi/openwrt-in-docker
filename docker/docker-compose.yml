@@ -1,0 +1,42 @@
+services:
+  openwrt:
+    image: openwrt-in-docker:latest
+    container_name: openwrt
+#    hostname: openwrt
+    # Kein privileged: der Entrypoint macht nur einen
+    # Dateisync /.etc.pristine -> /etc (s. entrypoint.sh), keinen Mount.
+    # NET_ADMIN/NET_RAW für Netzwerkt-Services im Container (iptables, ping, ...).
+    # SYSLOG, damit logd /proc/kmsg öffnen kann (sonst startet logd nicht).
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYSLOG
+    stop_signal: SIGINT
+    restart: unless-stopped
+    # Für den interaktiven Betrieb im Vordergrund (docker compose up ohne -d).
+    # Hinweis: einen Login-Prompt liefert das allein noch nicht, s. unten.
+    tty: true
+    stdin_open: true
+    # RootFS read-only; /etc bleibt über das Volume beschreibbar,
+    # Laufzeitpfade bekommen ein tmpfs (OpenWrt erwartet /tmp und /run schreibbar).
+    read_only: true
+    ports:
+      - "9080:80"
+      - "9443:443"
+    tmpfs:
+      - /tmp
+      - /run
+    volumes:
+      # Persistente Konfiguration; wird beim ersten Start aus /.etc.pristine
+      # befüllt und bei jedem Boot für neuere Image-Dateien aktualisiert.
+      # Ausgenommen: config/, dropbear/, board.json, shadow, passwd,
+      # rc.local, resolv.conf (bleiben immer Volume-Stand).
+      - openwrt-etc:/etc
+      - openwrt-overlay:/overlay
+    # Netz bei Bedarf anpassen, z. B.:
+    # network_mode: host
+    # oder ein macvlan-Netz für eine eigene LAN-IP des Containers.
+
+volumes:
+  openwrt-etc:
+  openwrt-overlay:
