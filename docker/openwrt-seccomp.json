@@ -61,6 +61,10 @@
 	"syscalls": [
 		{
 			"names": [
+				"pivot_root",
+				"reboot",
+				"sethostname",
+
 				"accept",
 				"accept4",
 				"access",
