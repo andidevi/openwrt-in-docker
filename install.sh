@@ -2,8 +2,9 @@
 # OpenWrt-Container-Setup auf dem Ziel-Host direkt aus dem Repo installieren.
 # Aufruf im Repo-Root (oder mit Pfad dorthin):
 #   sudo ./install.sh [/pfad/zum/repo] [/srv/openwrt]
-# Installiert Compose-Datei + Skripte nach /srv/openwrt/docker, Units nach
-# /etc/systemd/system (mit passenden Rechten/Owner/Group für systemd),
+# Installiert Compose-Datei + Skripte nach /srv/openwrt, Units nach
+# /etc/systemd/system und networkd-Profile nach /etc/systemd/network
+# (mit passenden Rechten/Owner/Group für systemd),
 # lädt systemd neu und aktiviert die Units.
 # Startet nichts automatisch (Reihenfolge: prep testen -> openwrt starten).
 set -euo pipefail
@@ -38,8 +39,15 @@ for unit in "$REPO"/systemd/*.service; do
   install -v -m 0644 -o root -g root "$unit" /etc/systemd/system/
 done
 
+# networkd-Profile für die Host-Bridges (DHCP): root:root, 0644.
+for net in "$REPO"/systemd/*.network; do
+  install -v -m 0644 -o root -g root "$net" /etc/systemd/network/
+done
+
 systemctl daemon-reload
 systemctl enable host-net-prep.service openwrt.service openwrt-netattach.service
+# networkd die neuen Profile bekannt machen (lädt nur, wenn networkd läuft).
+networkctl reload 2>/dev/null || true
 
 echo "ok: installiert unter $PREFIX, Units aktiviert."
 echo "Weiter: systemctl start host-net-prep.service # Bridges/veth prüfen (ip link, bridge link)"

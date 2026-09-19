@@ -1,0 +1,17 @@
+[Match]
+Name=br-k3s-outbound
+
+[Network]
+Description=Host-Anbindung an OpenWrt k3s-Netz
+# Host bezieht seine Adresse per DHCP vom OpenWrt-Container (dnsmasq auf k3s).
+DHCP=yes
+# Keine Default-Routen über dieses Interface: Default bleibt auf management
+# (br-management). Gilt für DHCPv4, DHCPv6 und RA-gelernte Routen.
+[DHCPv4]
+UseGateway=no
+
+[DHCPv6]
+UseGateway=no
+
+[IPv6AcceptRA]
+UseGateway=no
