@@ -1,5 +1,5 @@
 [Match]
-Name=veth-k3s-h
+Name=veth-k3sExtrn-h
 
 [Network]
 Description=Host-Anbindung an OpenWrt k3s-Netz (direkt auf veth, ohne Bridge)

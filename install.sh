@@ -57,6 +57,6 @@ systemctl enable openwrt.service openwrt-netattach.service
 networkctl reload 2>/dev/null || true
 
 echo "ok: installiert unter $PREFIX, Units aktiviert."
-echo "Weiter: networkctl status veth-k3s-h veth-mgmt-h # veth-Paare prüfen"
+echo "Weiter: networkctl status veth-k3sExtrn-h veth-mgmt-h # veth-Paare prüfen"
 echo "Dann:   systemctl start openwrt.service                 # Container + Interface-Anbindung"
 echo "Danach: sh $PREFIX/sbin/openwrt-uci-setup.sh per docker cp/exec im Container (s. Skriptkopf)"

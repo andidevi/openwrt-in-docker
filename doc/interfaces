@@ -7,10 +7,10 @@ container name: lan
 - name: enp4s0f3u1u4
 openwrt purpose: wan
 container name: wan
-- name: veth-k3s
+- name: veth-k3sExtrn
 openwrt purpose: lan-k3s
 container name: k3s
-host side: veth-k3s-h (DHCP direkt darauf, keine Default-Routen)
+host side: veth-k3sExtrn-h (DHCP direkt darauf, keine Default-Routen)
 - name: veth-mgmt
 openwrt purpose: lan-mgmt
 container name: mgmt

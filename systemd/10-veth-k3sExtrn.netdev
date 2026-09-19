@@ -1,0 +1,9 @@
+[NetDev]
+Name=veth-k3sExtrn-h
+Kind=veth
+Description=Host-Ende zum OpenWrt k3s-Netz (DHCP direkt auf veth-k3sExtrn-h)
+MACAddress=02:00:0a:03:03:fe
+
+[Peer]
+Name=veth-k3sExtrn
+MACAddress=02:00:0a:03:03:03

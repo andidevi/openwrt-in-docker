@@ -4,7 +4,7 @@
 # Host-Namen -> Container-Namen (s. doc/interfaces):
 #   enp2s0      -> lan    (physisch, LAN)
 #   enp4s0f3u1u4-> wan    (physisch/USB, WAN)
-#   veth-k3s    -> k3s    (Host-Ende veth-k3s-h, DHCP direkt darauf)
+#   veth-k3sExtrn -> k3s  (Host-Ende veth-k3sExtrn-h, DHCP direkt darauf)
 #   veth-mgmt   -> mgmt   (Host-Ende veth-mgmt-h, DHCP direkt darauf)
 #   WLAN-Phy von wlp3s0 -> Container-Netns (per iw, siehe unten)
 set -euo pipefail
@@ -62,7 +62,7 @@ set_mac() {
 
 move_ip_iface "enp2s0" "lan"
 move_ip_iface "enp4s0f3u1u4" "wan"
-move_ip_iface "veth-k3s" "k3s"
+move_ip_iface "veth-k3sExtrn" "k3s"
 move_ip_iface "veth-mgmt" "mgmt"
 
 # Lokal vergebene, stabile MACs (02:xx:xx... = locally administered) für

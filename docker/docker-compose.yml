@@ -16,7 +16,7 @@ services:
     # sonst hängt die Netz-Anbindung (openwrt-netattach.service) hinterher.
     restart: "no"
     # Kein Docker-Netz: nur Loopback. Alle Interfaces (lan, wan, wifi-Phy,
-    # veth-k3s, veth-mgmt) schiebt openwrt-netattach.service in die Container-Netns.
+    # veth-k3sExtrn, veth-mgmt) schiebt openwrt-netattach.service in die Container-Netns.
     # Deshalb auch kein ports:-Mapping mehr.
     network_mode: "none"
     # Für den interaktiven Betrieb im Vordergrund (docker compose up ohne -d).
