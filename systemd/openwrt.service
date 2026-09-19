@@ -1,7 +1,7 @@
 [Unit]
 Description=OpenWrt Container (docker compose)
-Requires=host-net-prep.service
-After=host-net-prep.service
+Requires=host-net-prep.service docker.service
+After=host-net-prep.service docker.service
 Wants=openwrt-netattach.service
 
 [Service]
