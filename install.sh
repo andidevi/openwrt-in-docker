@@ -26,8 +26,12 @@ fi
 # Verzeichnisse: root:root, 0755 (systemd liest Units, Container-Unit liest Compose).
 install -d -m 0755 -o root -g root "$PREFIX/docker" "$PREFIX/sbin"
 
-# Compose-Datei: root:root, 0644 (wird nur gelesen).
+# Compose-Datei + seccomp-Profil (von security_opt referenziert):
+# root:root, 0644 (wird nur gelesen).
 install -v -m 0644 -o root -g root "$REPO/docker/docker-compose.yml" "$PREFIX/docker/"
+for profile in "$REPO"/docker/*.json; do
+  install -v -m 0644 -o root -g root "$profile" "$PREFIX/docker/"
+done
 
 # Skripte (netattach, uci-setup): root:root, 0755 (werden ausgeführt).
 for script in "$REPO"/systemd/*.sh; do
