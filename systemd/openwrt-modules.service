@@ -1,0 +1,13 @@
+[Unit]
+Description=OpenWrt Kernel-Module laden (ppp_generic für /dev/ppp)
+# Läuft vor dem Container: ohne ppp_generic existiert /dev/ppp nicht und die
+# Container-Erstellung (devices:) schlägt fehl.
+Before=openwrt.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/modprobe ppp_generic
+
+[Install]
+WantedBy=multi-user.target

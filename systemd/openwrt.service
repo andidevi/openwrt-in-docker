@@ -2,8 +2,8 @@
 Description=OpenWrt Container (docker compose)
 # veth-Paare und Adressen kommen deklarativ aus systemd-networkd
 # (*.netdev/*.network); keine Prep-Unit nötig.
-Requires=docker.service systemd-networkd.service
-After=docker.service systemd-networkd.service
+Requires=docker.service systemd-networkd.service openwrt-modules.service
+After=docker.service systemd-networkd.service openwrt-modules.service
 Wants=openwrt-netattach.service network-online.target
 
 [Service]

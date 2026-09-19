@@ -20,6 +20,10 @@ services:
     security_opt:
       # Hier wird das maßgeschneiderte Profil geladen:
       - seccomp:./openwrt-seccomp.json
+    # Host-Devices für WLAN-Schalter (rfkill) und PPP-Einwahl (ppp).
+    devices:
+      - /dev/rfkill:/dev/rfkill
+      - /dev/ppp:/dev/ppp
     stop_signal: SIGINT
     # Lifecycle gehört systemd (openwrt.service); Docker darf nicht selbst neu starten,
     # sonst hängt die Netz-Anbindung (openwrt-netattach.service) hinterher.
