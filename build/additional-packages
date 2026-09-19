@@ -1,1 +1,1 @@
-luci-ssl wpad-openssl wireless-regdb ds-lite ubus iw iwinfo ucode-mod-nl80211
+luci-ssl wpad-openssl wireless-regdb ds-lite ubus iw iwinfo ucode-mod-nl80211 wifi-scripts luci-mod-network luci-mod-status
