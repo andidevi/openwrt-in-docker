@@ -1,0 +1,32 @@
+- name: wlp3s0
+openwrt purpose: wifi
+container name: siehe Hinweis unten (Phy zieht per iw in die Container-Netns um)
+- name: enp2s0
+openwrt purpose: lan
+container name: lan
+- name: enp4s0f3u1u4
+openwrt purpose: wan
+container name: wan
+- name: veth-k3s
+openwrt purpose: lan-k3s
+container name: k3s
+host bridge: br-k3s-outbound (Host-Ende: veth-k3s-h)
+- name: veth-mgmt
+openwrt purpose: lan-mgmt
+container name: mgmt
+host bridge: br-management (Host-Ende: veth-mgmt-h)
+
+Die beiden veth sollen jeweils eine eigene bridge auf dem Host ansprechen.
+wifi, lan und wan werden per ip-Befehl auf dem Host direkt in den Namespace des docker container geschoben. Dazu ist eine systemd-unit erforderlich, die den container started, ein bisschen wartet bis er da ist und dann die interfaces verschiebt.
+
+Umsetzung (s. systemd/ und docker/docker-compose.yml):
+- host-net-prep.service legt br-k3s-outbound/br-management und die veth-Paare an.
+- openwrt.service startet den Container (network_mode: none), openwrt-netattach.service
+  (+ ExecStartPost) schiebt die Interfaces in die Container-Netns und vergibt
+  stabile MACs (02:00:0a:xx).
+- WLAN-Sonderfall: nicht das Interface, sondern der ganze 802.11-Phy zieht per
+  `iw phy <phy> set netns <pid>` um. Der Interface-Name im Container kann deshalb
+  vom Host-Namen wlp3s0 abweichen -> nach dem Move `iw dev` im Container prüfen
+  und /etc/config/wireless daran ausrichten.
+- Firewall: eigene Zonen lan/wan/k3s(lan-k3s)/mgmt(lan-mgmt); Forwardings nur
+  Richtung wan (lan, k3s, mgmt untereinander isoliert).

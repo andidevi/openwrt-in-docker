@@ -12,7 +12,13 @@ services:
       - NET_RAW
       - SYSLOG
     stop_signal: SIGINT
-    restart: unless-stopped
+    # Lifecycle gehört systemd (openwrt.service); Docker darf nicht selbst neu starten,
+    # sonst hängt die Netz-Anbindung (openwrt-netattach.service) hinterher.
+    restart: "no"
+    # Kein Docker-Netz: nur Loopback. Alle Interfaces (lan, wan, wifi-Phy,
+    # veth-k3s, veth-mgmt) schiebt openwrt-netattach.service in die Container-Netns.
+    # Deshalb auch kein ports:-Mapping mehr.
+    network_mode: "none"
     # Für den interaktiven Betrieb im Vordergrund (docker compose up ohne -d).
     # Hinweis: einen Login-Prompt liefert das allein noch nicht, s. unten.
     tty: true
@@ -20,9 +26,6 @@ services:
     # RootFS read-only; /etc bleibt über das Volume beschreibbar,
     # Laufzeitpfade bekommen ein tmpfs (OpenWrt erwartet /tmp und /run schreibbar).
     read_only: true
-    ports:
-      - "9080:80"
-      - "9443:443"
     tmpfs:
       - /tmp
       - /run
@@ -33,9 +36,6 @@ services:
       # rc.local, resolv.conf (bleiben immer Volume-Stand).
       - openwrt-etc:/etc
       - openwrt-overlay:/overlay
-    # Netz bei Bedarf anpassen, z. B.:
-    # network_mode: host
-    # oder ein macvlan-Netz für eine eigene LAN-IP des Containers.
 
 volumes:
   openwrt-etc:

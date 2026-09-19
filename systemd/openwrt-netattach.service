@@ -1,0 +1,15 @@
+[Unit]
+Description=OpenWrt Interfaces in Container-Netns schieben
+# Boot-Fall: startet nach openwrt.service und hängt die Interfaces ein.
+# (Für Container-Neustarts läuft zusätzlich ExecStartPost in openwrt.service.)
+BindsTo=openwrt.service
+After=openwrt.service
+PartOf=openwrt.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/srv/openwrt/sbin/openwrt-netattach.sh
+
+[Install]
+WantedBy=multi-user.target
