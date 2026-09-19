@@ -11,6 +11,11 @@ services:
       - NET_ADMIN
       - NET_RAW
       - SYSLOG
+    # Eigener cgroup-Namespace (statt Host-cgroupns): procd muss für Dienste
+    # (u. a. dnsmasq) eigene Sub-Cgroups anlegen können. Auf dem Host läuft
+    # Arch mit cgroup v2; Compose-Key seit Compose v2.15 ( vgl. compose-spec).
+    cgroup_parent: openwrt.slice
+    cgroup: private
     stop_signal: SIGINT
     # Lifecycle gehört systemd (openwrt.service); Docker darf nicht selbst neu starten,
     # sonst hängt die Netz-Anbindung (openwrt-netattach.service) hinterher.

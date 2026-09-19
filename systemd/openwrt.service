@@ -8,6 +8,8 @@ Wants=openwrt-netattach.service network-online.target
 
 [Service]
 Type=simple
+# Eigene Slice: saubere cgroup-Einordnung des Containers unter openwrt.slice.
+Slice=openwrt.slice
 WorkingDirectory=/srv/openwrt/docker
 ExecStart=/usr/bin/docker compose up
 # Läuft bei jedem (auch automatischem) Neustart mit und hängt die Interfaces

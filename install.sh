@@ -34,8 +34,10 @@ for script in "$REPO"/systemd/*.sh; do
   install -v -m 0755 -o root -g root "$script" "$PREFIX/sbin/"
 done
 
-# Units: root:root, 0644 (systemd verlangt root-Ownership, nicht beschreibbar für andere).
-for unit in "$REPO"/systemd/*.service; do
+# Units und Slice: root:root, 0644 (systemd verlangt root-Ownership,
+# nicht beschreibbar für andere). Die Slice hat keine [Install]-Sektion und
+# wird daher nicht enabled, sondern bei Bedarf automatisch aktiviert.
+for unit in "$REPO"/systemd/*.service "$REPO"/systemd/*.slice; do
   install -v -m 0644 -o root -g root "$unit" /etc/systemd/system/
 done
 

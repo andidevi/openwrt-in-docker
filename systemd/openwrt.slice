@@ -1,0 +1,3 @@
+# /etc/systemd/system/openwrt.slice
+[Unit]
+Description=OpenWrt containers
