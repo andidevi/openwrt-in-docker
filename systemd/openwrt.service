@@ -18,6 +18,7 @@ ExecStartPost=/srv/openwrt/sbin/openwrt-netattach.sh
 ExecStop=/usr/bin/docker compose down
 Restart=always
 RestartSec=5
+Delegate=yes
 
 [Install]
 WantedBy=multi-user.target
