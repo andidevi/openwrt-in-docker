@@ -9,7 +9,7 @@ Wants=openwrt-netattach.service network-online.target
 [Service]
 Type=simple
 WorkingDirectory=/srv/openwrt/docker
-ExecStart=/usr/bin/docker compose up --no-recreate
+ExecStart=/usr/bin/docker compose up
 # Läuft bei jedem (auch automatischem) Neustart mit und hängt die Interfaces
 # wieder ein. Idempotent, Doppellauf mit openwrt-netattach.service ist harmlos.
 ExecStartPost=/srv/openwrt/sbin/openwrt-netattach.sh
