@@ -1,0 +1,9 @@
+[NetDev]
+Name=veth-mgmt-h
+Kind=veth
+Description=Host-Ende zum OpenWrt Management-Netz (DHCP direkt auf veth-mgmt-h)
+MACAddress=02:00:0a:04:04:fe
+
+[Peer]
+Name=veth-mgmt
+MACAddress=02:00:0a:04:04:04

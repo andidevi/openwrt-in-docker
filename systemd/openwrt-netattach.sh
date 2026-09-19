@@ -4,8 +4,8 @@
 # Host-Namen -> Container-Namen (s. doc/interfaces):
 #   enp2s0      -> lan    (physisch, LAN)
 #   enp4s0f3u1u4-> wan    (physisch/USB, WAN)
-#   veth-k3s    -> k3s    (Host-Ende hängt an br-k3s-outbound)
-#   veth-mgmt   -> mgmt   (Host-Ende hängt an br-management)
+#   veth-k3s    -> k3s    (Host-Ende veth-k3s-h, DHCP direkt darauf)
+#   veth-mgmt   -> mgmt   (Host-Ende veth-mgmt-h, DHCP direkt darauf)
 #   WLAN-Phy von wlp3s0 -> Container-Netns (per iw, siehe unten)
 set -euo pipefail
 
@@ -34,6 +34,16 @@ move_ip_iface() {
   if nsenter -t "$PID" -n ip link show "$cont_name" >/dev/null 2>&1; then
     log "$cont_name bereits in Container-Netns"
   else
+    # Auf dem Host warten (max. 30 s): veth-Paare legt networkd asynchron an.
+    local i
+    for i in $(seq 1 30); do
+      ip link show "$host_name" >/dev/null 2>&1 && break
+      sleep 1
+    done
+    if ! ip link show "$host_name" >/dev/null 2>&1; then
+      log "FEHLER: Host-Interface $host_name nicht gefunden"
+      return 1
+    fi
     # Altes Überbleibsel mit Zielnamen im Container entfernen.
     nsenter -t "$PID" -n ip link del "$cont_name" >/dev/null 2>&1 || true
     ip link set "$host_name" netns "$PID" name "$cont_name"

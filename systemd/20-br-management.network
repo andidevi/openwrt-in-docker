@@ -1,7 +1,0 @@
-[Match]
-Name=br-management
-
-[Network]
-Description=Host-Anbindung an OpenWrt Management-Netz
-# Host bezieht seine Adresse per DHCP vom OpenWrt-Container (dnsmasq auf mgmt).
-DHCP=yes

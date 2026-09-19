@@ -1,0 +1,8 @@
+[Match]
+Name=veth-mgmt-h
+
+[Network]
+Description=Host-Anbindung an OpenWrt Management-Netz (direkt auf veth, ohne Bridge)
+# Host bezieht seine Adresse per DHCP vom OpenWrt-Container (dnsmasq auf mgmt).
+# Dieses Interface darf die Default-Routen (v4/v6) setzen.
+DHCP=yes
