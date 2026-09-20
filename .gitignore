@@ -5,3 +5,5 @@
 *.tbz2
 *.txz
 *.tlz
+
+tmp/
