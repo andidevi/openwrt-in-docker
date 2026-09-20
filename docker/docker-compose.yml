@@ -12,6 +12,13 @@ services:
       - NET_RAW
       - SYSLOG
       - SYS_ADMIN
+    sysctls:
+      # Setzt die IPv6-Standard-MTU für alle neu erstellten Schnittstellen (wie pppoe)
+      - net.ipv6.conf.default.mtu=1452
+      - net.ipv6.conf.all.mtu=1452
+      # Falls IPv4-seitig auch Probleme auftreten:
+      - net.ipv4.conf.default.mtu=1452
+      - net.ipv4.conf.all.mtu=1452
     # Eigener cgroup-Namespace (statt Host-cgroupns): procd muss für Dienste
     # (u. a. dnsmasq) eigene Sub-Cgroups anlegen können. Auf dem Host läuft
     # Arch mit cgroup v2; Compose-Key seit Compose v2.15 ( vgl. compose-spec).
@@ -49,6 +56,8 @@ services:
       # rc.local, resolv.conf (bleiben immer Volume-Stand).
       - openwrt-etc:/etc
       - openwrt-overlay:/overlay
+      # da in eigener slice ok
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
 
 volumes:
   openwrt-etc:
