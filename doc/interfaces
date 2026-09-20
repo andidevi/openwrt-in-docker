@@ -23,8 +23,7 @@ wifi, lan und wan werden per ip-Befehl auf dem Host direkt in den Namespace des 
 Umsetzung (s. systemd/ und docker/docker-compose.yml):
 - systemd-networkd legt alles Deklarative an: veth-Paare mit stabilen MACs
   (10-veth-*.netdev, Peer-MACs 02:00:0a:xx) und DHCP direkt auf den Host-Enden
-  (20-veth-*-h.network, Default-Routen nur über veth-mgmt-h).
-  sysctl (ip_forward) via 99-openwrt-forward.conf. Kein Prep-Skript nötig.
+  (20-veth-*-h.network, Default-Routen nur über veth-mgmt-h). Kein Prep-Skript nötig.
 - openwrt.service startet den Container (network_mode: none), openwrt-netattach.service
   (+ ExecStartPost) schiebt die Interfaces in die Container-Netns und vergibt
   stabile MACs auf lan/wan (02:00:0a:01/02).

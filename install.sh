@@ -51,8 +51,9 @@ for net in "$REPO"/systemd/*.netdev "$REPO"/systemd/*.network; do
   install -v -m 0644 -o root -g root "$net" /etc/systemd/network/
 done
 
-# sysctl-Config (ip_forward): root:root, 0644, sofort anwenden.
+# sysctl-Configs (falls vorhanden): root:root, 0644, sofort anwenden.
 for conf in "$REPO"/systemd/*.conf; do
+  [ -e "$conf" ] || continue
   install -v -m 0644 -o root -g root "$conf" /etc/sysctl.d/
 done
 sysctl --system >/dev/null

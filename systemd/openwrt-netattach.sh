@@ -79,7 +79,10 @@ set_mac "mgmt" "02:00:0a:04:04:04"
 # Host darf die fremde Netns betreten. Erst nach dem Move, damit die Keys greifen.
 nsenter -t "$PID" -n sysctl -w net.ipv6.conf.default.forwarding=1
 nsenter -t "$PID" -n sysctl -w net.ipv6.conf.all.forwarding=1
-log "IPv6-Forwarding in Container-Netns aktiviert (default, all)"
+# IPv4-Forwarding ebenfalls hier (Container routet/NATet) statt auf dem Host
+# (der ist nur DHCP-Client auf den veth-Enden und routet nichts selbst).
+nsenter -t "$PID" -n sysctl -w net.ipv4.ip_forward=1
+log "Forwarding in Container-Netns aktiviert (ipv6 default/all, ipv4)"
 
 # WLAN: kein ip-Objekt, sondern der ganze 802.11-Phy muss umziehen.
 # Phy von wlp3s0 bestimmen und in die Container-Netns schieben.
