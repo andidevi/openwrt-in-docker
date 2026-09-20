@@ -20,6 +20,15 @@ echo buildah container "$container @ ${mountpoint}"
 # 1. Rootfs holen (z. B. via curl im Skript oder vorher per Workflow-Schritt heruntergeladen)
 curl -o "openwrt-rootfs-${LATEST}.tgz" "https://downloads.openwrt.org/releases/${LATEST}/targets/x86/64/openwrt-${LATEST}-x86-64-rootfs.tar.gz" 
 tar -xzf "openwrt-rootfs-${LATEST}.tgz" -C "${mountpoint}"
+# 1b. Patches aus build/patches einspielen (z. B. dhcpv6.script: echo >
+# /proc/sys ersetzen durch ip/sysctl, da /proc/sys im Container ro ist).
+if [ -d "${DIRNAME}/patches" ]; then
+    for p in "${DIRNAME}"/patches/*.patch; do
+        [ -e "$p" ] || continue
+        echo "wende Patch an: $p"
+        patch -s -d "${mountpoint}" -p1 < "$p"
+    done
+fi
 rm "${mountpoint}/etc/resolv.conf"
 pwd
 ls -l
