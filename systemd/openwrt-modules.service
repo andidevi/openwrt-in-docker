@@ -8,6 +8,8 @@ Before=openwrt.service
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/usr/bin/modprobe ppp_generic
+# bei type oneshot sind mehere ExecStart erlaubt und werden auch ausgeführt. getestet.
+ExecStart=/usr/bin/modprobe ip6_tunnel
 
 [Install]
 WantedBy=multi-user.target
