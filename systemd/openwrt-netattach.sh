@@ -73,6 +73,14 @@ set_mac "wan" "02:00:0a:02:02:02"
 set_mac "k3s" "02:00:0a:03:03:03"
 set_mac "mgmt" "02:00:0a:04:04:04"
 
+# IPv6-Forwarding in der Container-Netns einschalten. Läuft bewusst vom Host
+# aus per nsenter: /proc/sys ist im Container read-only (Docker-Verbot, kein
+# Volume/Mount kann das aufheben), aber /proc/sys/net gilt pro Netns und der
+# Host darf die fremde Netns betreten. Erst nach dem Move, damit die Keys greifen.
+nsenter -t "$PID" -n sysctl -w net.ipv6.conf.default.forwarding=1
+nsenter -t "$PID" -n sysctl -w net.ipv6.conf.all.forwarding=1
+log "IPv6-Forwarding in Container-Netns aktiviert (default, all)"
+
 # WLAN: kein ip-Objekt, sondern der ganze 802.11-Phy muss umziehen.
 # Phy von wlp3s0 bestimmen und in die Container-Netns schieben.
 PHY="$(basename "$(readlink "/sys/class/net/wlp3s0/phy80211" 2>/dev/null || true)" 2>/dev/null || true)"
