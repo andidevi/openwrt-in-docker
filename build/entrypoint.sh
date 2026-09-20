@@ -69,6 +69,8 @@ for src in $(find . -mindepth 1 -print | sed 's|^\./||' | sort); do
   fi
 done
 
+echo -n "[entrypoint] umount /etc/resolv.conf ... "
+/bin/umount /etc/resolv.conf && echo ok || echo failed
 echo "[entrypoint] Sync $PRISTINE -> $TARGET: $updated kopiert/aktualisiert, $skipped ausgenommen (Volume-Stand)." >&2
 echo "[entrypoint] Übergabe an $INIT ..." >&2
 exec "$INIT"
