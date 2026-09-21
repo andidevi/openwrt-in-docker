@@ -85,40 +85,55 @@ nsenter -t "$PID" -n sysctl -w net.ipv4.ip_forward=1
 log "Forwarding in Container-Netns aktiviert (ipv6 default/all, ipv4)"
 
 # WLAN: kein ip-Objekt, sondern der ganze 802.11-Phy muss umziehen.
-# Phy von wlp3s0 bestimmen und in die Container-Netns schieben.
-PHY="$(basename "$(readlink "/sys/class/net/wlp3s0/phy80211" 2>/dev/null || true)" 2>/dev/null || true)"
-if [ -z "$PHY" ]; then
-  # Fallback: einzigen Phy nehmen, wenn es genau einen gibt.
-  if [ "$(ls -d /sys/class/ieee80211/* 2>/dev/null | wc -l)" = "1" ]; then
-    PHY="$(basename "$(ls -d /sys/class/ieee80211/*)")"
+# Namensfalle: iw dev listet Phys als "phy#0", als Parameter und in sysfs
+# heißen sie "phy0" (ohne #). Beim Parsen von iw-Output das # daher auflösen.
+# 1. Phy bestimmen: über bekannte Interface-Namen, sonst einzigen Phy nehmen.
+PHY=""
+for _iface in wlp3s0 wlp0s3 wlan0; do
+  if [ -e "/sys/class/net/$_iface/phy80211" ]; then
+    PHY="$(basename "$(readlink "/sys/class/net/$_iface/phy80211")")"
+    log "WLAN-Phy $PHY über Interface $_iface gefunden"
+    break
   fi
+done
+if [ -z "$PHY" ] && [ "$(ls -d /sys/class/ieee80211/* 2>/dev/null | wc -l)" = "1" ]; then
+  PHY="$(basename "$(ls -d /sys/class/ieee80211/*)")"
+  log "WLAN-Phy $PHY über Fallback (einziger Phy) gefunden"
 fi
 if [ -n "$PHY" ]; then
   if [ -e "/sys/class/ieee80211/$PHY" ]; then
-    # Noch auf dem Host -> umziehen (Interface muss unten/unbenutzt sein).
-    log "WLAN-Phy $PHY (PID $PID) wird gemovt, Host-Interfaces darauf: $(iw dev 2>/dev/null | grep -A1 "phy#${PHY#phy}" | grep Interface || echo keine)"
-    ip link set wlp3s0 down 2>/dev/null || true
+    # 2. Alte, noch mit dem Phy verbundene Interfaces finden und löschen.
+    OLD_IFACES="$(iw dev 2>/dev/null | awk -v phy="$PHY" '/^phy#/ {cur=$1; sub(/^phy#/, "phy", cur)} cur == phy && $1 == "Interface" {print $2}')"
+    for _old in $OLD_IFACES; do
+      ip link set "$_old" down 2>/dev/null || true
+      iw dev "$_old" del
+      log "altes Interface $_old auf $PHY gelöscht"
+    done
+    # 3. Phy in die Container-Netns schieben.
     iw phy "$PHY" set netns "$PID"
     log "WLAN-Phy $PHY in Container-Netns gemovt"
-    # Verifizieren, dass der Phy in der Container-Netns sichtbar ist, BEVOR
-    # wir darauf ein Interface anlegen (sonst: "No such file or directory").
-    sleep 1
-    if ! nsenter -t "$PID" -n iw phy "$PHY" info >/dev/null 2>&1; then
-      log "FEHLER: Phy $PHY nach Move in Container-Netns (PID $PID) nicht sichtbar."
-      log "Host-Seite: $(iw dev 2>&1 | head -5)"
-      log "Container-Seite: $(nsenter -t "$PID" -n iw dev 2>&1 | head -5)"
-      exit 1
-    fi
-    # Interface in der Container-Netns anlegen. iw läuft vom Host (Binary),
-    # nur die Netns ist die des Containers. Idempotent: vorhandenes wlan0 bleibt.
+    # 4. Neues Interface in der Container-Netns anlegen (idempotent).
+    # iw läuft vom Host (Binary), nur die Netns ist die des Containers.
     if nsenter -t "$PID" -n ip link show wlan0 >/dev/null 2>&1; then
       log "wlan0 bereits in Container-Netns vorhanden"
     else
       nsenter -t "$PID" -n iw phy "$PHY" interface add wlan0 type managed && log "Interface wlan0 auf $PHY in Container-Netns angelegt" || log "FEHLER: Interface wlan0 auf $PHY in Container-Netns anlegen gescheitert"
     fi
+    # 5. Erfolg prüfen am Interface statt am Phy: `iw phy info` (Capability-
+    # Dump) schlägt je nach Treiber/Zustand auch bei gemovtem Phy fehl, während
+    # `iw dev` ihn längst zeigt. wlan0 ist das Kriterium, das wirklich zählt.
+    if ! nsenter -t "$PID" -n ip link show wlan0 >/dev/null 2>&1; then
+      log "FEHLER: wlan0 nach Anlegen in Container-Netns (PID $PID) nicht vorhanden."
+      log "Container-Seite iw: $(nsenter -t "$PID" -n iw dev 2>&1 | head -10)"
+      log "Container-Seite ip: $(nsenter -t "$PID" -n ip -o link show 2>&1 | head -10)"
+      exit 1
+    fi
+    log "wlan0 in Container-Netns verifiziert"
   else
     log "WLAN-Phy $PHY bereits in Container-Netns"
   fi
+elif nsenter -t "$PID" -n ip link show wlan0 >/dev/null 2>&1; then
+  log "wlan0 bereits in Container-Netns vorhanden (Phy schon früher gemovt)"
 else
   log "WARNUNG: kein WLAN-Phy gefunden, wifi übersprungen"
 fi
