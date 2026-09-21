@@ -96,16 +96,25 @@ fi
 if [ -n "$PHY" ]; then
   if [ -e "/sys/class/ieee80211/$PHY" ]; then
     # Noch auf dem Host -> umziehen (Interface muss unten/unbenutzt sein).
+    log "WLAN-Phy $PHY (PID $PID) wird gemovt, Host-Interfaces darauf: $(iw dev 2>/dev/null | grep -A1 "phy#${PHY#phy}" | grep Interface || echo keine)"
     ip link set wlp3s0 down 2>/dev/null || true
     iw phy "$PHY" set netns "$PID"
     log "WLAN-Phy $PHY in Container-Netns gemovt"
+    # Verifizieren, dass der Phy in der Container-Netns sichtbar ist, BEVOR
+    # wir darauf ein Interface anlegen (sonst: "No such file or directory").
+    sleep 1
+    if ! nsenter -t "$PID" -n iw phy "$PHY" info >/dev/null 2>&1; then
+      log "FEHLER: Phy $PHY nach Move in Container-Netns (PID $PID) nicht sichtbar."
+      log "Host-Seite: $(iw dev 2>&1 | head -5)"
+      log "Container-Seite: $(nsenter -t "$PID" -n iw dev 2>&1 | head -5)"
+      exit 1
+    fi
     # Interface in der Container-Netns anlegen. iw läuft vom Host (Binary),
     # nur die Netns ist die des Containers. Idempotent: vorhandenes wlan0 bleibt.
     if nsenter -t "$PID" -n ip link show wlan0 >/dev/null 2>&1; then
       log "wlan0 bereits in Container-Netns vorhanden"
     else
-      nsenter -t "$PID" -n iw phy "$PHY" interface add wlan0 type managed
-      log "Interface wlan0 auf $PHY in Container-Netns angelegt"
+      nsenter -t "$PID" -n iw phy "$PHY" interface add wlan0 type managed && log "Interface wlan0 auf $PHY in Container-Netns angelegt" || log "FEHLER: Interface wlan0 auf $PHY in Container-Netns anlegen gescheitert"
     fi
   else
     log "WLAN-Phy $PHY bereits in Container-Netns"
