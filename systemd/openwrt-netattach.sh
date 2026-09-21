@@ -99,6 +99,14 @@ if [ -n "$PHY" ]; then
     ip link set wlp3s0 down 2>/dev/null || true
     iw phy "$PHY" set netns "$PID"
     log "WLAN-Phy $PHY in Container-Netns gemovt"
+    # Interface in der Container-Netns anlegen. iw läuft vom Host (Binary),
+    # nur die Netns ist die des Containers. Idempotent: vorhandenes wlan0 bleibt.
+    if nsenter -t "$PID" -n ip link show wlan0 >/dev/null 2>&1; then
+      log "wlan0 bereits in Container-Netns vorhanden"
+    else
+      nsenter -t "$PID" -n iw phy "$PHY" interface add wlan0 type managed
+      log "Interface wlan0 auf $PHY in Container-Netns angelegt"
+    fi
   else
     log "WLAN-Phy $PHY bereits in Container-Netns"
   fi
