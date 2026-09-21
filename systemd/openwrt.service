@@ -12,12 +12,16 @@ Type=simple
 Slice=openwrt.slice
 WorkingDirectory=/srv/openwrt/docker
 ExecStart=/usr/bin/docker compose up
-# Läuft bei jedem (auch automatischem) Neustart mit und hängt die Interfaces
-# wieder ein. Idempotent, Doppellauf mit openwrt-netattach.service ist harmlos.
+# Läuft einmalig nach dem Start und hängt die Interfaces ein.
+# Idempotent, Doppellauf mit openwrt-netattach.service ist harmlos.
 ExecStartPost=/srv/openwrt/sbin/openwrt-netattach.sh
 ExecStop=/usr/bin/docker compose down
-Restart=always
-RestartSec=5
+# Bewusst kein automatischer Neustart: Stirbt der Container, werden die in
+# seine Netns gemovten Interfaces (lan, wan, k3s, mgmt, WLAN-Phy) mit der
+# Netns zerstört. Ein blinder Neustart liefe dann ohne Netz. Neustart nur
+# manuell (systemctl start openwrt.service), nachdem die veth-Paare wieder
+# da sind (networkctl reload legt sie bei Bedarf neu an).
+Restart=no
 Delegate=yes
 
 [Install]
