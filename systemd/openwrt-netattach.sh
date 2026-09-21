@@ -112,23 +112,6 @@ if [ -n "$PHY" ]; then
     # 3. Phy in die Container-Netns schieben.
     iw phy "$PHY" set netns "$PID"
     log "WLAN-Phy $PHY in Container-Netns gemovt"
-    # 4. Neues Interface in der Container-Netns anlegen (idempotent).
-    # iw läuft vom Host (Binary), nur die Netns ist die des Containers.
-    if nsenter -t "$PID" -n ip link show wlan0 >/dev/null 2>&1; then
-      log "wlan0 bereits in Container-Netns vorhanden"
-    else
-      nsenter -t "$PID" -n iw phy "$PHY" interface add wlan0 type managed && log "Interface wlan0 auf $PHY in Container-Netns angelegt" || log "FEHLER: Interface wlan0 auf $PHY in Container-Netns anlegen gescheitert"
-    fi
-    # 5. Erfolg prüfen am Interface statt am Phy: `iw phy info` (Capability-
-    # Dump) schlägt je nach Treiber/Zustand auch bei gemovtem Phy fehl, während
-    # `iw dev` ihn längst zeigt. wlan0 ist das Kriterium, das wirklich zählt.
-    if ! nsenter -t "$PID" -n ip link show wlan0 >/dev/null 2>&1; then
-      log "FEHLER: wlan0 nach Anlegen in Container-Netns (PID $PID) nicht vorhanden."
-      log "Container-Seite iw: $(nsenter -t "$PID" -n iw dev 2>&1 | head -10)"
-      log "Container-Seite ip: $(nsenter -t "$PID" -n ip -o link show 2>&1 | head -10)"
-      exit 1
-    fi
-    log "wlan0 in Container-Netns verifiziert"
   else
     log "WLAN-Phy $PHY bereits in Container-Netns"
   fi
