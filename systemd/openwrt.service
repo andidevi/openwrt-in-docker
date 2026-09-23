@@ -5,6 +5,10 @@ Description=OpenWrt Container (docker compose)
 Requires=docker.service systemd-networkd.service openwrt-modules.service
 After=docker.service systemd-networkd.service openwrt-modules.service
 Wants=openwrt-netattach.service network-online.target
+# hostapd (AP auf wlp3s0, anderes Repo) wartet auf uns: Before ordnet unseren
+# Startjob (inkl. ExecStartPost/netattach) vor hostapd ein, sobald beide in
+# derselben Transaktion starten.
+Before=hostapd-wlp3s0.service
 
 [Service]
 Type=simple
@@ -17,7 +21,7 @@ ExecStart=/usr/bin/docker compose up
 ExecStartPost=/srv/openwrt/sbin/openwrt-netattach.sh
 ExecStop=/usr/bin/docker compose down
 # Bewusst kein automatischer Neustart: Stirbt der Container, werden die in
-# seine Netns gemovten Interfaces (lan, wan, k3s, mgmt, WLAN-Phy) mit der
+# seine Netns gemovten Interfaces (lan, wan, k3s, mgmt, wifi) mit der
 # Netns zerstört. Ein blinder Neustart liefe dann ohne Netz. Neustart nur
 # manuell (systemctl start openwrt.service), nachdem die veth-Paare wieder
 # da sind (networkctl reload legt sie bei Bedarf neu an).
@@ -25,4 +29,6 @@ Restart=no
 Delegate=yes
 
 [Install]
-WantedBy=multi-user.target
+# multi-user.target: normaler Boot-Start. hostapd-wlp3s0.service: hostapd zieht
+# uns beim Start mit (Wants), unsere Before=-Ordnung lässt hostapd warten.
+WantedBy=multi-user.target hostapd-wlp3s0.service
