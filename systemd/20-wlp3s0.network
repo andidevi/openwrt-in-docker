@@ -1,0 +1,10 @@
+[Match]
+Name=wlp3s0
+
+[Network]
+Description=WLAN-AP-Interface (wird von hostapd-wlp3s0.service angelegt) an die Bridge hängen
+Bridge=br-wifi
+# Keine Adressen auf dem Host: reines L2, hostapd managt das Interface.
+# Greift per Hotplug, sobald hostapd das Interface anlegt.
+LinkLocalAddressing=no
+DHCP=no

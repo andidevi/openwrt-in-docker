@@ -1,0 +1,9 @@
+[NetDev]
+Name=veth-wifi-h
+Kind=veth
+Description=Host-Ende zum OpenWrt wifi-Netz (hängt an br-wifi)
+MACAddress=02:00:0a:05:05:fe
+
+[Peer]
+Name=veth-wifi
+MACAddress=02:00:0a:05:05:05

@@ -1,0 +1,12 @@
+[Match]
+Name=br-wifi
+
+[Network]
+Description=Host-Bridge wlp3s0 <-> veth-wifi-h, reines L2-Switching
+# Bewusst keine Adressen, kein DHCP, kein SLAAC/RA: die Bridge bekommt auf dem
+# Host keine Netzwerk-Konfiguration. Nur ActivationPolicy=up, weil eine
+# DOWN-Bridge nichts forwardet (networkd lässt ungemanagte Links unten).
+ActivationPolicy=up
+LinkLocalAddressing=no
+IPv6AcceptRA=no
+DHCP=no

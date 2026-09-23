@@ -1,6 +1,7 @@
 - name: wlp3s0
-openwrt purpose: wifi
-container name: siehe Hinweis unten (Phy zieht per iw in die Container-Netns um)
+openwrt purpose: wifi (via veth, kein Phy-Move)
+container name: wifi (Peer veth-wifi; AP läuft auf dem Host, s. doc/host-hostapd)
+host side: veth-wifi-h an br-wifi zusammen mit wlp3s0
 - name: enp2s0
 openwrt purpose: lan
 container name: lan
@@ -16,20 +17,24 @@ openwrt purpose: lan-mgmt
 container name: mgmt
 host side: veth-mgmt-h (DHCP direkt darauf, setzt die Default-Routen)
 
-Keine Bridges auf dem Host: die veth-Paare sind direkt gekoppelt, das Host-Ende
-bezieht seine Adresse per DHCP vom OpenWrt-Container.
+Keine Bridges auf dem Host für k3s/mgmt: deren veth-Paare sind direkt gekoppelt,
+das Host-Ende bezieht seine Adresse per DHCP vom OpenWrt-Container.
+Ausnahme wifi: br-wifi koppelt wlp3s0 mit veth-wifi-h auf L2 (reines Switching,
+keine Adressen/DHCP/RA auf dem Host für die Bridge).
 wifi, lan und wan werden per ip-Befehl auf dem Host direkt in den Namespace des docker container geschoben. Dazu ist eine systemd-unit erforderlich, die den container started, ein bisschen wartet bis er da ist und dann die interfaces verschiebt.
 
 Umsetzung (s. systemd/ und docker/docker-compose.yml):
 - systemd-networkd legt alles Deklarative an: veth-Paare mit stabilen MACs
-  (10-veth-*.netdev, Peer-MACs 02:00:0a:xx) und DHCP direkt auf den Host-Enden
-  (20-veth-*-h.network, Default-Routen nur über veth-mgmt-h). Kein Prep-Skript nötig.
+  (10-veth-*.netdev, Peer-MACs 02:00:0a:xx), DHCP direkt auf den Host-Enden
+  von k3s/mgmt (20-veth-*-h.network, Default-Routen nur über veth-mgmt-h)
+  sowie br-wifi (10-br-wifi.netdev) mit veth-wifi-h und wlp3s0 als Ports
+  (20-veth-wifi-h.network, 20-wlp3s0.network; 20-br-wifi.network aktiviert die
+  Bridge nur, ohne Adressen). Kein Prep-Skript nötig.
 - openwrt.service startet den Container (network_mode: none), openwrt-netattach.service
-  (+ ExecStartPost) schiebt die Interfaces in die Container-Netns und vergibt
-  stabile MACs auf lan/wan (02:00:0a:01/02).
-- WLAN-Sonderfall: nicht das Interface, sondern der ganze 802.11-Phy zieht per
-  `iw phy <phy> set netns <pid>` um. Der Interface-Name im Container kann deshalb
-  vom Host-Namen wlp3s0 abweichen -> nach dem Move `iw dev` im Container prüfen
-  und /etc/config/wireless daran ausrichten.
+  (+ ExecStartPost) schiebt die Interfaces (lan, wan, k3s, mgmt, wifi) in die
+  Container-Netns und vergibt stabile MACs auf lan/wan (02:00:0a:01/02).
+- WLAN: kein Phy-Move mehr (deaktiviert). hostapd läuft auf dem Host
+  (github.com/andidevi/host-hostapd, AP auf wlp3s0, Konfig aus anderem
+  Repo); der Container hängt über veth-wifi auf L2 im selben Netz.
 - Firewall: eigene Zonen lan/wan/k3s(lan-k3s)/mgmt(lan-mgmt); Forwardings nur
   Richtung wan (lan, k3s, mgmt untereinander isoliert).

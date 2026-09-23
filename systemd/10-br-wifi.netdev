@@ -1,0 +1,4 @@
+[NetDev]
+Name=br-wifi
+Kind=bridge
+Description=Host-Bridge zwischen wlp3s0 (hostapd AP) und veth-wifi-h, reines L2

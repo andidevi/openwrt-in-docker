@@ -6,7 +6,10 @@
 #   enp4s0f3u1u4-> wan    (physisch/USB, WAN)
 #   veth-k3sExtrn -> k3s  (Host-Ende veth-k3sExtrn-h, DHCP direkt darauf)
 #   veth-mgmt   -> mgmt   (Host-Ende veth-mgmt-h, DHCP direkt darauf)
-#   WLAN-Phy von wlp3s0 -> Container-Netns (per iw, siehe unten)
+#   veth-wifi   -> wifi   (Host-Ende veth-wifi-h an br-wifi; WLAN-AP läuft
+#                          auf dem Host per hostapd, kein Phy-Move)
+# daher deaktiviert:
+#   WLAN-Phy von wlp3s0 -> Container-Netns (per iw, Code noch vorhanden, siehe unten)
 set -euo pipefail
 
 CONTAINER="openwrt"
@@ -64,6 +67,7 @@ move_ip_iface "enp2s0" "lan"
 move_ip_iface "enp4s0f3u1u4" "wan"
 move_ip_iface "veth-k3sExtrn" "k3s"
 move_ip_iface "veth-mgmt" "mgmt"
+move_ip_iface "veth-wifi" "wifi"
 
 # Lokal vergebene, stabile MACs (02:xx:xx... = locally administered) für
 # DHCP-Wiedererkennung. Bei Bedarf anpassen; falls der WAN-Provider an die
@@ -72,6 +76,7 @@ set_mac "lan" "02:00:0a:01:01:01"
 set_mac "wan" "02:00:0a:02:02:02"
 set_mac "k3s" "02:00:0a:03:03:03"
 set_mac "mgmt" "02:00:0a:04:04:04"
+set_mac "wifi" "02:00:0a:05:05:05"
 
 # IPv6-Forwarding in der Container-Netns einschalten. Läuft bewusst vom Host
 # aus per nsenter: /proc/sys ist im Container read-only (Docker-Verbot, kein
@@ -83,6 +88,9 @@ nsenter -t "$PID" -n sysctl -w net.ipv6.conf.all.forwarding=1
 # (der ist nur DHCP-Client auf den veth-Enden und routet nichts selbst).
 nsenter -t "$PID" -n sysctl -w net.ipv4.ip_forward=1
 log "Forwarding in Container-Netns aktiviert (ipv6 default/all, ipv4)"
+
+log "Skipping wifi phy. Done."
+exit 0
 
 # WLAN: kein ip-Objekt, sondern der ganze 802.11-Phy muss umziehen.
 # Namensfalle: iw dev listet Phys als "phy#0", als Parameter und in sysfs

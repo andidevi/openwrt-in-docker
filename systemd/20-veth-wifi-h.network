@@ -1,0 +1,9 @@
+[Match]
+Name=veth-wifi-h
+
+[Network]
+Description=Host-Ende des wifi-veth an die Bridge hängen
+Bridge=br-wifi
+# Keine Adressen auf dem Host-Ende: reines L2-Uplink zur Bridge.
+LinkLocalAddressing=no
+DHCP=no
