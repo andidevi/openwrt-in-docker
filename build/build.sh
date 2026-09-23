@@ -29,6 +29,17 @@ if [ -d "${DIRNAME}/patches" ]; then
         patch -s -d "${mountpoint}" -p1 < "$p"
     done
 fi
+# 1c. Shell-Alias vi -> vim (vim-Paket ist in additional-packages).
+# /etc/profile: für Login-Shells. /etc/shinit + ENV: für nicht-Login-Shells
+# wie `docker exec … ash` (busybox-ash liest $ENV bei interaktiven Shells).
+# Beide landen über .etc.pristine per Entrypoint-Sync im /etc-Volume
+# (weder profile noch shinit sind von Updates ausgenommen).
+if ! grep -q "alias vi=vim" "${mountpoint}/etc/profile" 2>/dev/null; then
+    echo "alias vi=vim" >> "${mountpoint}/etc/profile"
+fi
+if ! grep -q "alias vi=vim" "${mountpoint}/etc/shinit" 2>/dev/null; then
+    echo "alias vi=vim" >> "${mountpoint}/etc/shinit"
+fi
 rm "${mountpoint}/etc/resolv.conf"
 pwd
 ls -l
@@ -55,6 +66,8 @@ echo finished.
 ls -l "${mountpoint}"
 #buildah config --entrypoint '["/sbin/init"]' "$container"
 buildah config --entrypoint '["/bin/ash", "/usr/local/bin/entrypoint.sh"]' "$container"
+# ENV zeigt auf die Shell-Init für nicht-Login-Shells (s. 1c).
+buildah config --env ENV=/etc/shinit "$container"
 buildah unmount "$container"
 ## In die lokale Cluster-Registry committen/pushen
 #buildah commit "$container" "${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
