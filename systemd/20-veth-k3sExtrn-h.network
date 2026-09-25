@@ -5,6 +5,8 @@ Name=veth-k3sExtrn-h
 Description=Host-Anbindung an OpenWrt k3s-Netz (direkt auf veth, ohne Bridge)
 # Host bezieht seine Adresse per DHCP vom OpenWrt-Container (dnsmasq auf k3s).
 DHCP=yes
+IPv6AcceptRA=yes
+
 # Keine Default-Routen über dieses Interface: Default bleibt auf veth-mgmt-h.
 # Gilt für DHCPv4, DHCPv6 und RA-gelernte Routen.
 [DHCPv4]
@@ -12,6 +14,19 @@ UseGateway=no
 
 [DHCPv6]
 UseGateway=no
+RouteTable=1000
 
 [IPv6AcceptRA]
 UseGateway=no
+RouteTable=1000
+
+# REGEL 1: Greift, wenn das Interface explizit angesprochen wird (z.B. Ihr Ping-Befehl)
+[RoutingPolicyRule]
+IncomingInterface=veth-k3s-h
+Table=1000
+
+# REGEL 2: Greift, wenn K3s-Pods oder Services über die globale IPv6-Adresse kommunizieren.
+# Ersetzen Sie "::YOUR:SUFFIX" durch den exakten hinteren Teil Ihrer IPv6 (z.B. ::a8bb:ccff:fede:1234)
+[RoutingPolicyRule]
+From=::aff:fe03:3fe/::ffff:ffff:ffff:ffff
+Table=1000
