@@ -7,6 +7,9 @@ Description=Host-Anbindung an OpenWrt k3s-Netz (direkt auf veth, ohne Bridge)
 DHCP=yes
 IPv6AcceptRA=yes
 
+# keine Route fuer fe80::/64
+LinkLocalAddressing=no
+
 # Keine Default-Routen über dieses Interface: Default bleibt auf veth-mgmt-h.
 # Gilt für DHCPv4, DHCPv6 und RA-gelernte Routen.
 [DHCPv4]
