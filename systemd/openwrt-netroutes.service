@@ -1,0 +1,19 @@
+[Unit]
+Description=OpenWrt IPv6-Quell-Regeln für veth-k3sExtrn-h aktuell halten
+# Läuft, solange der Container-Dienst läuft (stoppt/startet mit ihm),
+# erst nach der Netz-Anbindung.
+BindsTo=openwrt.service
+After=openwrt.service openwrt-netattach.service
+PartOf=openwrt.service
+
+[Service]
+Type=simple
+ExecStart=/srv/openwrt/sbin/openwrt-netroutes.sh
+# Zustandsloser Abgleich-Daemon: Neustart ist immer sicher (legt nur fehlende
+# Regeln an, löscht nur verwaiste). Gegensatz zu openwrt.service (Restart=no),
+# wo ein Neustart die Container-Netns zerstören würde.
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

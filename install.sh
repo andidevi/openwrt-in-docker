@@ -59,7 +59,7 @@ done
 sysctl --system >/dev/null
 
 systemctl daemon-reload
-systemctl enable openwrt-modules.service openwrt.service openwrt-netattach.service
+systemctl enable openwrt-modules.service openwrt.service openwrt-netattach.service openwrt-netroutes.service
 # networkd die neuen Profile bekannt machen (lädt nur, wenn networkd läuft).
 networkctl reload 2>/dev/null || true
 

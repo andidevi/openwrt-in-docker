@@ -7,11 +7,12 @@ Description=Host-Anbindung an OpenWrt k3s-Netz (direkt auf veth, ohne Bridge)
 DHCP=yes
 IPv6AcceptRA=yes
 
-# keine Route fuer fe80::/64
+# keine Route fuer fe80::/64 (mit LinkLocalAddressing=no gibt es ohnehin keins)
 LinkLocalAddressing=no
 
-# Keine Default-Routen über dieses Interface: Default bleibt auf veth-mgmt-h.
-# Gilt für DHCPv4, DHCPv6 und RA-gelernte Routen.
+# Keine Default-Routen über dieses Interface in Main: Default bleibt auf veth-mgmt-h.
+# Gelernte Routen + explizite Default-Route landen stattdessen in Tabelle 1000,
+# Quell-Regeln dafür legt openwrt-netroutes.service zur Laufzeit an.
 [DHCPv4]
 UseGateway=no
 
@@ -23,13 +24,14 @@ RouteTable=1000
 UseGateway=no
 RouteTable=1000
 
-# REGEL 1: Greift, wenn das Interface explizit angesprochen wird (z.B. Ihr Ping-Befehl)
-[RoutingPolicyRule]
-IncomingInterface=veth-k3s-h
+# Default-Route in Tabelle 1000 über den RA-advertised Gateway (dynamisch,
+# folgt Präfixwechseln ohne Dateiänderung).
+[Route]
+Gateway=_ipv6ra
 Table=1000
 
-# REGEL 2: Greift, wenn K3s-Pods oder Services über die globale IPv6-Adresse kommunizieren.
-# Ersetzen Sie "::YOUR:SUFFIX" durch den exakten hinteren Teil Ihrer IPv6 (z.B. ::a8bb:ccff:fede:1234)
+# Fängt explizit an das Interface gebundenen Traffic (z.B. ping -I).
 [RoutingPolicyRule]
-From=::aff:fe03:3fe/::ffff:ffff:ffff:ffff
+OutgoingInterface=veth-k3sExtrn-h
+Priority=200
 Table=1000

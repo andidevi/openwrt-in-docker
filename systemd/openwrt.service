@@ -4,7 +4,7 @@ Description=OpenWrt Container (docker compose)
 # (*.netdev/*.network); keine Prep-Unit nötig.
 Requires=docker.service systemd-networkd.service openwrt-modules.service
 After=docker.service systemd-networkd.service openwrt-modules.service
-Wants=openwrt-netattach.service network-online.target
+Wants=openwrt-netattach.service openwrt-netroutes.service network-online.target
 # hostapd (AP auf wlp3s0, anderes Repo) wartet auf uns: Before ordnet unseren
 # Startjob (inkl. ExecStartPost/netattach) vor hostapd ein, sobald beide in
 # derselben Transaktion starten.

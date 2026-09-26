@@ -11,7 +11,8 @@ container name: wan
 - name: veth-k3sExtrn
 openwrt purpose: lan-k3s
 container name: k3s
-host side: veth-k3sExtrn-h (DHCP direkt darauf, keine Default-Routen)
+host side: veth-k3sExtrn-h (DHCP direkt darauf, IPv6-Ausleitung über Tabelle 1000,
+  Default bleibt auf veth-mgmt-h; Quell-Regeln pflegt openwrt-netroutes.service)
 - name: veth-mgmt
 openwrt purpose: lan-mgmt
 container name: mgmt
@@ -33,6 +34,13 @@ Umsetzung (s. systemd/ und docker/docker-compose.yml):
 - openwrt.service startet den Container (network_mode: none), openwrt-netattach.service
   (+ ExecStartPost) schiebt die Interfaces (lan, wan, k3s, mgmt, wifi) in die
   Container-Netns und vergibt stabile MACs auf lan/wan (02:00:0a:01/02).
+- openwrt-netroutes.service (Hintergrund-Dienst, pollt alle 30 s): hält die
+  IPv6-From-Regeln für veth-k3sExtrn-h aktuell (Tabelle 1000, Priority 100, je
+  ein /128 pro globaler Adresse). Überlebt Provider-Ausfälle und
+  PPPoE-Präfixwechsel selbstheilend (max. ein Intervall veraltet); bei
+  Adressänderung alte Regeln raus, neue rein. Statisch in der .network-Datei:
+  Default-Route via RA-Gateway nach 1000 plus oif-Regel (Priority 200).
+  Im Repo stehen keine echten Adressen.
 - WLAN: kein Phy-Move mehr (deaktiviert). hostapd läuft auf dem Host
   (github.com/andidevi/host-hostapd, AP auf wlp3s0, Konfig aus anderem
   Repo); der Container hängt über veth-wifi auf L2 im selben Netz.
