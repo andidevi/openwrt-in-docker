@@ -6,3 +6,10 @@ Description=Host-Anbindung an OpenWrt Management-Netz (direkt auf veth, ohne Bri
 # Host bezieht seine Adresse per DHCP vom OpenWrt-Container (dnsmasq auf mgmt).
 # Dieses Interface darf die Default-Routen (v4/v6) setzen.
 DHCP=yes
+IPv6AcceptRA=yes
+IPv6Preference=temporary
+
+[IPv6AcceptRA]
+#Token=stable-privacy
+IPv6PrivacyExtensions=yes
+IPv6Token=none
