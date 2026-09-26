@@ -10,25 +10,22 @@ IPv6AcceptRA=yes
 # keine Route fuer fe80::/64 (mit LinkLocalAddressing=no gibt es ohnehin keins)
 LinkLocalAddressing=no
 
-# Keine Default-Routen über dieses Interface in Main: Default bleibt auf veth-mgmt-h.
-# Gelernte Routen + explizite Default-Route landen stattdessen in Tabelle 1000,
-# Quell-Regeln dafür legt openwrt-netroutes.service zur Laufzeit an.
+# Gelernte Routen (inkl. RA-Gateway) landen in Tabelle 1000 statt in Main:
+# Der Main-Default bleibt dadurch allein auf veth-mgmt-h, k3s-Traffic wird per
+# Policy-Regeln (oif-Regel unten + openwrt-netroutes.service) nach 1000 gelenkt.
+# WICHTIG: kein explizites [Route] Gateway=_ipv6ra hier — das beißt sich mit
+# UseGateway=no (networkd ignoriert die Route dann kommentarlos bzw. beschwert
+# sich im Log). Der RA-Gateway kommt über RouteTable= von allein nach 1000.
 [DHCPv4]
 UseGateway=no
 
 [DHCPv6]
-UseGateway=no
+UseGateway=yes
 RouteTable=1000
 
 [IPv6AcceptRA]
-UseGateway=no
+UseGateway=yes
 RouteTable=1000
-
-# Default-Route in Tabelle 1000 über den RA-advertised Gateway (dynamisch,
-# folgt Präfixwechseln ohne Dateiänderung).
-[Route]
-Gateway=_ipv6ra
-Table=1000
 
 # Fängt explizit an das Interface gebundenen Traffic (z.B. ping -I).
 [RoutingPolicyRule]
