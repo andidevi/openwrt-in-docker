@@ -7,8 +7,9 @@ Description=Host-Anbindung an OpenWrt k3s-Netz (direkt auf veth, ohne Bridge)
 DHCP=yes
 IPv6AcceptRA=yes
 
-# keine Route fuer fe80::/64 (mit LinkLocalAddressing=no gibt es ohnehin keins)
-LinkLocalAddressing=no
+# KEIN LinkLocalAddressing=no hier: ohne Link-Local-Adresse kommt auf diesem
+# Link gar kein IPv6 zustande (NDP/DHCPv6 brauchen fe80), dann zeigt ip a
+# überhaupt nichts an. Die fe80-Route in Main ist harmlos und bleibt.
 
 # Gelernte Routen (inkl. RA-Gateway) landen in Tabelle 1000 statt in Main:
 # Der Main-Default bleibt dadurch allein auf veth-mgmt-h, k3s-Traffic wird per
