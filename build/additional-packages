@@ -1,1 +1,1 @@
-luci-ssl wpad-openssl wireless-regdb ds-lite ubus iw iwinfo ucode-mod-nl80211 wifi-scripts luci-mod-network luci-mod-status vim ddns-scripts luci-app-ddns bind-host wget-ssl ca-certificates
+luci-ssl wpad-openssl wireless-regdb ds-lite ubus iw iwinfo ucode-mod-nl80211 wifi-scripts luci-mod-network luci-mod-status luci-app-uhttpd vim ddns-scripts luci-app-ddns bind-host wget-ssl ca-certificates ss luci-app-upnp luci-app-bcp38 luci-app-sqm luci-app-statistics collectd-mod-interface collectd-mod-conntrack collectd-mod-sqm collectd-mod-dhcpleases collectd-mod-network 
