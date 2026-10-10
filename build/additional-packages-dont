@@ -1,0 +1,3 @@
+# sqm queing (benötigt module auf dem host, siehe dort /etc/modules.load.d/sqm-sched.conf.disabled // alternatives UI https://github.com/openwrt/qosify
+# Zweck: donwload und upload speed beschränken für bessere latency (die leute verzichten auf 10% der maximalen Geschwindigkeit, damit sie in Konkurrenz zu Download ungestört weiter zocken können)
+luci-sqm tc-full
